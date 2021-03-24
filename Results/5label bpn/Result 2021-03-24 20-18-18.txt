@@ -1,0 +1,10 @@
+<<<Status>>>
+Number of train_data: 5556
+Number of verify_data: 1389
+Number of Hidden Layer: 4
+Number of Neuron in each Hidden Layer: [16, 8, 6, 5]
+Learning Rate: 0.1
+Epoch: 351
+Loss: 2.151691664627801
+Train accuracy: 0.38192944564434844
+Verify accuracy: 0.36789056875449966

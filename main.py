@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd 
 import math
+import time 
 
+np.random.seed(100)
 
 df_lp1 = 'lp1_data.csv'
 df_lp2 = 'lp2_data.csv'
@@ -11,11 +13,17 @@ df_lp5 = 'lp5_data.csv'
 dfs = [df_lp1, df_lp2, df_lp3, df_lp4, df_lp5]
 
 train_ratio = 0.8
-learning_rate = 0.03
+learning_rate = 0.1
 Epoch = 501
 tau = 0.001
-Layer = [8, 16, 16, 8]
+Layer = [16, 8, 6, 5]
 output_dim = 5
+
+minmax = 1
+strr = ""
+if minmax == 1:
+    strr = 'with minmax normalizion'
+
 
 full_data = []
 train_data = []
@@ -29,7 +37,10 @@ for df in dfs:
 np.random.shuffle(full_data)
 for tp in full_data:
     train_data.append(tp[0:6])
-    lp_tmp.append(tp[6])
+    if tp[6] == 3:
+        lp_tmp.append(2)
+    else :
+        lp_tmp.append(tp[6])
 
 train_label = np.zeros( ( len(train_data), output_dim ) )
 for i in range(len(lp_tmp)):
@@ -52,12 +63,22 @@ def initialize(Layer):
 
     return Weights, Bias
 
+def Minmax_scale(w):
+    return np.array( (w-w.min()) / (w.max()-w.min()) )
+
 def Partition(data, label, ratio):
+    if minmax == 1 :
+        data = np.transpose(data).astype(np.float64)
+        for i in range (len(data) ):
+            data[i] = Minmax_scale(data[i])
+        data = np.transpose(data)
     t_data = data[0:int(len(data)*ratio) ]
     t_label = label[0:int(len(label)*ratio) ]
     verify_data = data[int(len(data)*ratio):len(data)]
     verify_label = label[int(len(data)*ratio):len(data)]
     return t_data, t_label, verify_data, verify_label
+
+print("D")
 
 def Sigmoid( n ):
     l = []
@@ -98,6 +119,8 @@ Layer.append(output_dim)
 Weights, Bias = initialize(Layer)
 t_data, t_label, verify_data, verify_label = Partition(train_data, train_label, train_ratio)
 
+
+
 end_flag = False
 last_acc_T = 0
 last_acc_V = 0
@@ -108,6 +131,7 @@ for ep in range(Epoch):
     acc_t = 0
     acc_v = 0
     flag = (ep % 10 == 0)
+    string = ""
     for i in range(len(t_data)):
         a = []
         a.append( t_data[i] )
@@ -157,7 +181,8 @@ for ep in range(Epoch):
         print("< Loss is low enough ( tau: " + str(tau) + ") >"  )
         end_flag = True
 
-    if end_flag:
+    if flag:
+        print("<<< Status" + " " + strr + " >>>")
         print("Number of train_data: " + str( len(t_data)) )
         print("Number of verify_data: " + str( len(verify_data)) )
         print("Number of Hidden Layer: " + str( len(Layer)-2) )
@@ -167,4 +192,21 @@ for ep in range(Epoch):
         print("Loss: " + str( totalLoss / len(t_data) ))
         print("Train accuracy: " + str(acc_t / len(t_data)) )
         print("Verify accuracy: " + str(acc_v / len(verify_data)) )
+        
+        
+        with open('Results\\' + strr + ' ' + 'Result '+time.strftime('%Y-%m-%d %H-%M-%S', time.localtime()) +  '.txt', mode = 'w') as text_file:
+            string += "<<<Status>>>\n"
+            string += "Number of train_data: " + str( len(t_data)) +"\n"
+            string += "Number of verify_data: " + str( len(verify_data)) +"\n"
+            string += "Number of Hidden Layer: " + str( len(Layer)-2) +"\n"
+            string += "Number of Neuron in each Hidden Layer: " + str(Layer[1:len(Layer)-1]) +"\n"
+            string += "Learning Rate: " + str(learning_rate) +"\n"
+            string += "Epoch: " + str(ep+1) +"\n"
+            string += "Loss: " + str( totalLoss / len(t_data) )+"\n"
+            string += "Train accuracy: " + str(acc_t / len(t_data)) +"\n"
+            string += "Verify accuracy: " + str(acc_v / len(verify_data)) +"\n"
+            text_file.write(string)
+            text_file.close()
+
+    if end_flag:
         break
