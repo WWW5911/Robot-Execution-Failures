@@ -3,7 +3,7 @@ import pandas as pd
 import math
 import time 
 
-np.random.seed(100)
+np.random.seed(7)
 
 df_lp1 = 'lp1_data.csv'
 df_lp2 = 'lp2_data.csv'
@@ -13,10 +13,10 @@ df_lp5 = 'lp5_data.csv'
 dfs = [df_lp1, df_lp2, df_lp3, df_lp4, df_lp5]
 
 train_ratio = 0.8
-learning_rate = 0.1
+learning_rate = 0.03
 Epoch = 501
 tau = 0.001
-Layer = [16, 8, 6, 5]
+Layer = [8, 12, 12, 5]
 output_dim = 5
 
 minmax = 1
@@ -36,6 +36,8 @@ for df in dfs:
 
 np.random.shuffle(full_data)
 for tp in full_data:
+    if tp[6] == 3:
+        continue
     train_data.append(tp[0:6])
     if tp[6] == 3:
         lp_tmp.append(2)
@@ -50,8 +52,10 @@ def initialize(Layer):
     Weights = []
     Bias = []
     for i in range ( 1, len(Layer) ):
-        weight = np.random.randn( Layer[i-1], Layer[i]) * np.sqrt(2 / Layer[i])
-        b = np.random.randn(Layer[i], 1) * np.sqrt(2 / Layer[i])
+        #weight = np.random.randn( Layer[i-1], Layer[i]) * np.sqrt(2 / Layer[i])
+        #b = np.random.randn(Layer[i], 1) * np.sqrt(2 / Layer[i])
+        weight = np.random.rand( Layer[i-1], Layer[i]) * np.sqrt(1 / (Layer[i-1]+ Layer[i]) )
+        b = np.zeros( (Layer[i], 1) ) 
         Weights.append(weight)
         Bias.append(b)
 
@@ -78,7 +82,7 @@ def Partition(data, label, ratio):
     verify_label = label[int(len(data)*ratio):len(data)]
     return t_data, t_label, verify_data, verify_label
 
-print("D")
+#print("D")
 
 def Sigmoid( n ):
     l = []
@@ -100,9 +104,11 @@ def Binary_crossEntropy(y, a):
     for i in range( len(y) ):
         CE += y[i] * math.log(a[i] + 1e-15 ) + (1 - y[i]) * math.log(1 - a[i] + 1e-15)
     return CE
-def FeedForward(data, Weight, bias):
+
+def FeedForward(data, Weight, bias, active):
     n = np.matmul( data, Weight) + bias.transpose() 
-    return np.asarray( Sigmoid(n[0]) ) 
+    # return np.asarray( Sigmoid(n[0]) ) 
+    return np.asarray( active(n[0]) ) 
 
 def Prediction(a):
     index = 0
@@ -111,6 +117,17 @@ def Prediction(a):
             index = i
     return index
 
+def softmax( n ):
+    n = np.asarray(n)
+    t = np.exp(n)/sum(np.exp(n))
+    return t
+
+def ReLU( n ):
+    n = np.asarray(n)
+    for i in range (len(n)):
+        if n[i] < 0:
+            n[i] = 0
+    return n
 
 # add input dim and output dim
 Layer.insert(0, len(train_data[0]))
@@ -125,6 +142,11 @@ end_flag = False
 last_acc_T = 0
 last_acc_V = 0
 ce = []
+writee = False
+
+output_Active = softmax  # in output Layer : softmax / Sigmoid
+active = ReLU # in hidden Layer : softmax / Sigmoid / ReLU
+
 for ep in range(Epoch):
     totalLoss = 0
     L = len(Layer)-1
@@ -135,9 +157,15 @@ for ep in range(Epoch):
     for i in range(len(t_data)):
         a = []
         a.append( t_data[i] )
-        for l in range(1, L+1 ):
-            a.append(FeedForward(a[l-1],  Weights[l], Bias[l]) )
+
+        for l in range(1, L ):
+            a.append(FeedForward(a[l-1],  Weights[l], Bias[l], active) )
         
+        # output layer 
+        n = np.matmul( a[L-1], Weights[L]) + Bias[L].transpose() 
+        a.append( output_Active(n[0]) )
+
+
         # BackWard
         Delta = [ a[L] - t_label[i] ]
         for l in range(L-1, 0, -1):
@@ -162,7 +190,7 @@ for ep in range(Epoch):
         for i in range( len(verify_data) ):
             out = verify_data[i]
             for l in range(1, L+1 ):
-                out = FeedForward(out, Weights[l], Bias[l])
+                out = FeedForward(out, Weights[l], Bias[l], active)
             p = Prediction(out)
             if verify_label[i][p] == 1:
                 acc_v += 1
@@ -193,20 +221,20 @@ for ep in range(Epoch):
         print("Train accuracy: " + str(acc_t / len(t_data)) )
         print("Verify accuracy: " + str(acc_v / len(verify_data)) )
         
-        
-        with open('Results\\' + strr + ' ' + 'Result '+time.strftime('%Y-%m-%d %H-%M-%S', time.localtime()) +  '.txt', mode = 'w') as text_file:
-            string += "<<<Status>>>\n"
-            string += "Number of train_data: " + str( len(t_data)) +"\n"
-            string += "Number of verify_data: " + str( len(verify_data)) +"\n"
-            string += "Number of Hidden Layer: " + str( len(Layer)-2) +"\n"
-            string += "Number of Neuron in each Hidden Layer: " + str(Layer[1:len(Layer)-1]) +"\n"
-            string += "Learning Rate: " + str(learning_rate) +"\n"
-            string += "Epoch: " + str(ep+1) +"\n"
-            string += "Loss: " + str( totalLoss / len(t_data) )+"\n"
-            string += "Train accuracy: " + str(acc_t / len(t_data)) +"\n"
-            string += "Verify accuracy: " + str(acc_v / len(verify_data)) +"\n"
-            text_file.write(string)
-            text_file.close()
+        if writee == True:
+            with open('Results\\' + strr + ' ' + 'Result '+time.strftime('%Y-%m-%d %H-%M-%S', time.localtime()) +  '.txt', mode = 'w') as text_file:
+                string += "<<<Status>>>\n"
+                string += "Number of train_data: " + str( len(t_data)) +"\n"
+                string += "Number of verify_data: " + str( len(verify_data)) +"\n"
+                string += "Number of Hidden Layer: " + str( len(Layer)-2) +"\n"
+                string += "Number of Neuron in each Hidden Layer: " + str(Layer[1:len(Layer)-1]) +"\n"
+                string += "Learning Rate: " + str(learning_rate) +"\n"
+                string += "Epoch: " + str(ep+1) +"\n"
+                string += "Loss: " + str( totalLoss / len(t_data) )+"\n"
+                string += "Train accuracy: " + str(acc_t / len(t_data)) +"\n"
+                string += "Verify accuracy: " + str(acc_v / len(verify_data)) +"\n"
+                text_file.write(string)
+                text_file.close()
 
     if end_flag:
         break
