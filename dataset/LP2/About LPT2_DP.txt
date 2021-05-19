@@ -1,0 +1,52 @@
+class={0,1,2,3,4}
+No. of observations=47
+Training data[:38]
+Testing data[38:]
+==============================
+20	back_col	0
+36	back_col	0
+40	back_col	0
+41	back_col	0
+44	back_col	0
+45	back_col	0
+46	back_col	0
+21	front_col	1
+35	front_col	1
+38	front_col	1
+39	front_col	1
+42	front_col	1
+43	front_col	1
+23	left_col	2
+24	left_col	2
+25	left_col	2
+27	left_col	2
+28	left_col	2
+29	left_col	2
+30	left_col	2
+31	left_col	2
+32	left_col	2
+0	normal	3
+1	normal	3
+2	normal	3
+3	normal	3
+4	normal	3
+5	normal	3
+6	normal	3
+7	normal	3
+8	normal	3
+9	normal	3
+10	normal	3
+11	normal	3
+12	normal	3
+13	normal	3
+14	normal	3
+15	normal	3
+16	normal	3
+17	normal	3
+18	normal	3
+19	normal	3
+22	right_col	4
+26	right_col	4
+33	right_col	4
+34	right_col	4
+37	right_col	4

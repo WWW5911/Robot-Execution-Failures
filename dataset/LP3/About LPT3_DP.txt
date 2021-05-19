@@ -1,0 +1,52 @@
+class={0,1,2,3}
+No. of observations=47
+Training data[:37]
+Testing data[37:]
+====================================
+35	lost	0
+41	lost	0
+43	lost	0
+20	moved	1
+21	moved	1
+23	moved	1
+29	moved	1
+31	moved	1
+32	moved	1
+33	moved	1
+34	moved	1
+36	moved	1
+37	moved	1
+38	moved	1
+39	moved	1
+40	moved	1
+42	moved	1
+46	moved	1
+0	ok	2
+1	ok	2
+2	ok	2
+3	ok	2
+4	ok	2
+5	ok	2
+6	ok	2
+7	ok	2
+8	ok	2
+9	ok	2
+10	ok	2
+11	ok	2
+12	ok	2
+13	ok	2
+14	ok	2
+15	ok	2
+16	ok	2
+17	ok	2
+18	ok	2
+19	ok	2
+22	slightly_moved	3
+24	slightly_moved	3
+25	slightly_moved	3
+26	slightly_moved	3
+27	slightly_moved	3
+28	slightly_moved	3
+30	slightly_moved	3
+44	slightly_moved	3
+45	slightly_moved	3
